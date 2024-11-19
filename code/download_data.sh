@@ -34,15 +34,17 @@ sleep 1
 
 # now loop through the list of ids and save each article to the raw data folder
 
+source code/progress_bar.sh
 
 counter=1
 for pmid in $pmids
 do
   curl -s "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pubmed&id=${pmid}" > data/raw/article-data-$pmid.xml
-  echo "Downloaded $counter/$n_articles articles..."
+  show_progress $counter $n_articles
   counter=$((counter+1))
   sleep 1
 done
+
 
 echo
 echo "Finished data download."
