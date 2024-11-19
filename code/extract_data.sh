@@ -58,13 +58,15 @@ process_file() {
         }
 
         # Capture Keyword within the <KeywordList> block
-        if (clean_tag($2) == "Keyword" && in_keyword == 1) {
-            keywords = $3
+        if ((clean_tag($2) == "Keyword" && in_keyword == 1) ||
+            clean_tag($2) == "DescriptorName" ||
+            clean_tag($2) == "QualifierName") {
+            keywords = (keywords == "" ? $3 : keywords ", " $3)
         }
 
         # Output the data at the end of a PubmedArticle
         if (clean_tag($2) == "/PubmedArticle") {
-            print pmid, year, title, abstract, keywords
+            print pmid, year, title, abstract, keywords#, mesh
             pmid = ""; year = ""; title = ""; abstract = ""; keywords = ""
         }
     }'
