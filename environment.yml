@@ -1,0 +1,11 @@
+name: ahds-summative-env
+channels:
+  - conda-forge
+  - https://repo.anaconda.com/pkgs/main
+  - https://repo.anaconda.com/pkgs/r
+dependencies:
+  - r-base=4.4.1
+  - r-tidyverse=2.0.0
+  - r-tidytext=0.4.2
+  - r-janitor=2.2.0
+prefix: /Users/rhodridavies/miniconda3/envs/ahds-summative-env
