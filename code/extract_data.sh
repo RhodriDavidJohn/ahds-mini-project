@@ -47,6 +47,11 @@ process_file() {
             year = $3
         }
 
+        # Capture Month within the <ArticleDate> block
+        if (clean_tag($2) == "Month" && in_article_date == 1) {
+            month = $3
+        }
+
         # Capture ArticleTitle
         if (clean_tag($2) == "ArticleTitle") {
             title = $3
@@ -66,8 +71,8 @@ process_file() {
 
         # Output the data at the end of a PubmedArticle
         if (clean_tag($2) == "/PubmedArticle") {
-            print pmid, year, title, abstract, keywords#, mesh
-            pmid = ""; year = ""; title = ""; abstract = ""; keywords = ""
+            print pmid, year, month, title, abstract, keywords#, mesh
+            pmid = ""; year = ""; month = ""; title = ""; abstract = ""; keywords = ""
         }
     }'
 }
@@ -78,7 +83,7 @@ process_file() {
 echo "Extracting the PMID, Article Year, Article Title, and Article Abstract from each article..."
 
 # Create or clear the output file
-echo -e "PMID\tYear\tArticleTitle\tAbstract\tKeywords" > "$OUTPUT_TSV"
+echo -e "PMID\tYear\tMonth\tArticleTitle\tAbstract\tKeywords" > "$OUTPUT_TSV"
 
 source code/progress_bar.sh
 
