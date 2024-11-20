@@ -34,7 +34,7 @@ sleep 1
 
 # now loop through the list of ids and save each article to the raw data folder
 
-source code/progress_bar.sh
+source code/utils/progress_bar.sh
 
 counter=1
 for pmid in $pmids
