@@ -3,9 +3,12 @@ channels:
   - conda-forge
   - https://repo.anaconda.com/pkgs/main
   - https://repo.anaconda.com/pkgs/r
+  - bioconda
 dependencies:
-  - r-base=4.4.1
-  - r-tidyverse=2.0.0
-  - r-tidytext=0.4.2
-  - r-janitor=2.2.0
+  - python=3.10.0
+  - pandas
+  - nltk
+  - bertopic
+  - python-kaleido
+  - snakemake
 prefix: /Users/rhodridavies/miniconda3/envs/ahds-summative-env
