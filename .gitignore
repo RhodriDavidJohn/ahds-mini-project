@@ -1,2 +1,4 @@
 data/raw/*
 data/clean/*
+results/*
+code/utils/__pycache__
