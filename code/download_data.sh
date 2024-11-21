@@ -1,6 +1,5 @@
 #!/bin/bash
 
-date
 echo "Downloading list of PubMed article IDs..."
 
 # download the PubMed article IDs
@@ -12,10 +11,10 @@ curl -s "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pubmed&te
 # first get a list of all the ids
 pmids=`cat data/raw/pmids.xml | sed -n 's|<Id>\(.*\)</Id>|\1|p'`
 
-n_articles=${#pmids}
+n_articles=`wc -w <<< $pmids`
 
 echo "Downloaded $n_articles article IDs."
-echo 
+echo
 
 load_time=$((n_articles/4))  # assuming it takes quarter of a second to download each article
 est_time_s=$((n_articles+load_time)) # adding the number of articles because of sleep. this is the estimate in seconds
@@ -48,4 +47,3 @@ done
 
 echo
 echo "Finished data download."
-date

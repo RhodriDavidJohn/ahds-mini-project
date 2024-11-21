@@ -1,6 +1,6 @@
 #!/bin/bash
 
-bar_size=50
+bar_size=100
 bar_char_done="#"
 bar_char_todo="-"
 bar_percentage_scale=2
