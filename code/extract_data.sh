@@ -21,12 +21,12 @@ process_file() {
     }
     
     {
-        # Track whether we are inside the <ArticleDate> tag
-        if (clean_tag($2) == "ArticleDate") {
-            in_article_date = 1
+        # Track whether we are inside the <PubDate> tag
+        if (clean_tag($2) == "PubDate") {
+            in_pub_date = 1
         }
-        if (clean_tag($2) == "/ArticleDate") {
-            in_article_date = 0
+        if (clean_tag($2) == "/PubDate") {
+            in_pub_date = 0
         }
 
         # Track whether we are inside the <KeywordList> tag
@@ -42,14 +42,9 @@ process_file() {
             pmid = $3
         }
 
-        # Capture Year within the <ArticleDate> block
-        if (clean_tag($2) == "Year" && in_article_date == 1) {
+        # Capture Year within the <PubDate> block
+        if (clean_tag($2) == "Year" && in_pub_date == 1) {
             year = $3
-        }
-
-        # Capture Month within the <ArticleDate> block
-        if (clean_tag($2) == "Month" && in_article_date == 1) {
-            month = $3
         }
 
         # Capture ArticleTitle
@@ -71,33 +66,29 @@ process_file() {
 
         # Output the data at the end of a PubmedArticle
         if (clean_tag($2) == "/PubmedArticle") {
-            print pmid, year, month, title, abstract, keywords#, mesh
-            pmid = ""; year = ""; month = ""; title = ""; abstract = ""; keywords = ""
+            print pmid, year, title, abstract, keywords
+            pmid = ""; year = ""; title = ""; abstract = ""; keywords = ""
         }
     }'
 }
 
 
-
-
-echo "Extracting the PMID, Article Year, Article Title, and Article Abstract from each article..."
+echo
+echo "Extracting the PMID, Publish Year, Article Title, Article Abstract, and Article MESH terms from each article..."
 
 # Create or clear the output file
-echo -e "PMID\tYear\tMonth\tArticleTitle\tAbstract\tKeywords" > "$OUTPUT_TSV"
-
-source code/progress_bar.sh
-
-n_articles=`ls $INPUT_DATA | wc -l`
-counter=1
+echo -e "PMID\tYear\tArticleTitle\tAbstract\tKeywords" > "$OUTPUT_TSV"
 
 # Loop through all XML files in the directory
+# and append dat to the output file
+# the & simble parellalizes the process
 for file in $INPUT_DATA; do
-    if [[ -f "$file" ]]; then
-        process_file "$file" >> "$OUTPUT_TSV"
-        show_progress $counter $n_articles
-	counter=$((counter+1))
-    fi
+    process_file "$file" >> "$OUTPUT_TSV" &
 done
 
-echo "Extraction complete. Data saved to $OUTPUT_TSV"
+# wait untill all files have been processed
+wait
 
+echo "Extraction complete."
+echo "Data saved to $OUTPUT_TSV"
+echo
