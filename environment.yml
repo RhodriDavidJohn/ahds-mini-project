@@ -5,10 +5,11 @@ channels:
   - https://repo.anaconda.com/pkgs/r
   - bioconda
 dependencies:
-  - python=3.10.0
-  - pandas
-  - nltk
-  - bertopic
-  - python-kaleido
+  - r-base=4.4.2
+  - r-janitor
+  - r-tidytext
+  - r-tidyverse=2.0.0
+  - r-topicmodels
+  - r-reshape2
   - snakemake
 prefix: /Users/rhodridavies/miniconda3/envs/ahds-summative-env
