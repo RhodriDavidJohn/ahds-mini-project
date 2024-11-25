@@ -57,27 +57,20 @@ process_file() {
             abstract = (abstract == "" ? $3 : abstract " " $3)
         }
 
-        # Capture Keyword within the <KeywordList> block
-        if ((clean_tag($2) == "Keyword" && in_keyword == 1) ||
-            clean_tag($2) == "DescriptorName" ||
-            clean_tag($2) == "QualifierName") {
-            keywords = (keywords == "" ? $3 : keywords ", " $3)
-        }
-
         # Output the data at the end of a PubmedArticle
         if (clean_tag($2) == "/PubmedArticle") {
             print pmid, year, title, abstract, keywords
-            pmid = ""; year = ""; title = ""; abstract = ""; keywords = ""
+            pmid = ""; year = ""; title = ""; abstract = ""
         }
     }'
 }
 
 
 echo
-echo "Extracting the PMID, Publish Year, Article Title, Article Abstract, and Article MESH terms from each article..."
+echo "Extracting the PMID, Publish Year, Article Title and Article Abstract from each article..."
 
 # Create or clear the output file
-echo -e "PMID\tYear\tArticleTitle\tAbstract\tKeywords" > "$OUTPUT_TSV"
+echo -e "PMID\tYear\tArticleTitle\tAbstract" > "$OUTPUT_TSV"
 
 # Loop through all XML files in the directory
 # and append dat to the output file
