@@ -9,7 +9,9 @@ library(ggplot2)
 library(dplyr)
 
 
-article_characteristic <- "title"
+args <- commandArgs(trailingOnly = TRUE)
+
+article_characteristic <- args[1]
 
 data_dir <- "data/clean/"
 output_dir <- "results/"
