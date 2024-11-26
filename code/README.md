@@ -1,15 +1,17 @@
 # Information about the code
 
 ## Folder contents
-This folder contains 3 files and one sub-folder which contains a single file.
+This folder contains 5 files and one sub-folder which contains a single file.
 
 The files in this folder are:
-	- get_pmids.sh
-	- download_data.sh
-	- extract_data.sh
+    - get_pmids.sh
+	  - download_data.sh
+	  - extract_data.sh
+    - clean_data.R
+    - visualise_data.R
 
 The sub-folder utils contains the following file:
-	- progress_bar.sh
+	  - progress_bar.sh
 
 
 ## File contents
@@ -28,9 +30,19 @@ The articles are then saved as XML files in ../data/raw/article-data-{pmid}.xml
 ### extract_data.sh
 This is a shell script to extract the data of interest from the PubMed article XML files in ../data/raw/article-data-{pmid}.xml
 The shell script uses the awk command to extract the values from the following XML tags:
-  - PMID = <PMID>
-  - Year = <PubDate><Year>
-  - Article Title = <ArticleTitle>
-  - Abstract = <AbstractText>
+  - PMID = \<PMID\>
+  - Year = \<PubDate\>\<Year\>
+  - Article Title = \<ArticleTitle\>
+  - Abstract = \<AbstractText\>
 PMID is the PubMed ID, Year is the year the article is published, Article Title is the article's title, and Abstract is the article's abstract.
 The shell script extracts the data from every article in parallel and saves it as a TSV file in ../data/clean/extracted_data.tsv
+
+### clean_data.R
+This is an R script to clean the extracted data from the extract_data.sh output.
+The R script loads the extracted data TSV file from ../data/clean/extracted_data.tsv and removes rows with missing values, articles with a publish date in 2025, and removes non-alphabetical characters (including XML tags) from the text data using regex.
+Then the cleaned data are tidied so it is ready for analysis. The data are tidied using R's tidytext package, by unnesting tokens and removing stopwords, including the words "long" and "covid" as all articles are about long COVID.
+The R script then outputs the cleaned and tidied data to ../data/clean/{article_characteristic}_data.tsv.
+
+### visualise_data.R
+This is an R script to visualise the data analysis of the text data.
+The R script loads the user specified cleaned and tidied data from ../data/clean/{article_characteristic}_data.tsv (the user can choose between 'title' and 'abstract' for the article characteristic) and then performs Latent Dirichlet Allocation (LDA) topic modelling with 3 topics. The R script then outputs a plot showing the 5 most common terms for each topic as ../results/article_{article_characteristic}_topic_terms.png so the user can interpret the topics, and a plot showing the change in the proportion of topics over time as ../results/article_{article_characteristic}_topics_over_time.png.

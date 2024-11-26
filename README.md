@@ -8,7 +8,35 @@ All tasks are designed to run on the high performance computer (HPC) BlueCrystal
 
 
 ## More Information
+### Project
+This project aims to explore trends in PubMed articles about long COVID-19. The project can be split into 3 main steps to achieve this; Data download, Data cleaning, and Data visualisation.
+The data are downloaded as XML files from PubMed using the E-utilities application programming interface (API) using shell scripts.
+The data are then cleaned and tidied using Shell and R so that the data can be easily analysed.
+Finally, the data are analysed using Latent Dirichlet Allocation (LDA) topic modelling and visualised in R.
 
+### Tech Stack
+Environment management:
+        - conda
+Programming languages:
+        - Shell
+        - R (version 4.4.2)
+                - tidyverse
+                - janitor
+                - tidytext
+                - topicmodels
+                - ggplot2
+        - Python (version 3.12.7)
+                - snakemake
+                - pandas
+High performance computing:
+        - BlueCrystal
+        - Slurm
+
+### Instructions
+#### Conda environment set-up
+
+
+#### Running the pipeline
 
 
 
