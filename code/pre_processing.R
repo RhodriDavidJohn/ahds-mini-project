@@ -11,7 +11,21 @@
 library(janitor)
 library(tidyverse)
 library(tidytext)
+library(dplyr)
 
+
+args <- commandArgs(trailingOnly = TRUE)
+
+article_characteristic <- args[1]
+
+if (article_characteristic == "title") {
+  col <- "article_title"
+} else if (article_characteristic == "abstract") {
+  col <- "abstract"
+}
+
+
+print(paste0("Pre-processing ", article_characteristic, " data"))
 
 print("Loading the extracted data")
 # load the data
@@ -44,35 +58,22 @@ print(article_dist)
 data <- data %>%
   filter(year != 2025)
 
-# split the data into the three categories
-# title, abstract, mesh
-title_data <- data %>% select("pmid", "year", "article_title")
-abstract_data <- data %>% select("pmid", "year", "abstract")
+# split the data into the article characteristic
+data <- data %>% select("pmid", "year", {{col}})
 
 
 print("Cleaning the data")
-# clean the 3 datasets by
+# clean the dataset by
 # dropping any rows with missing text data
 # removing XML tags and non-alphabetical characters from text
+data_clean <- data %>%
+  drop_na(col) %>%
+  mutate(!!sym(col) := str_remove_all(!!sym(col), "<[^>]+>")) %>% # nolint
+  mutate(!!sym(col) := str_remove_all(!!sym(col), "[^a-zA-Z ]"))
 
-# cleaning title data
-title_data_clean <- title_data %>%
-  drop_na(article_title) %>%
-  mutate(article_title = str_remove_all(article_title, "<[^>]+>")) %>% # nolint
-  mutate(article_title = str_remove_all(article_title, "[^a-zA-Z ]"))
-
-# cleaning abstract data
-abstract_data_clean <- abstract_data %>%
-  drop_na(abstract) %>%
-  mutate(abstract = str_remove_all(abstract, "<[^>]+>")) %>% # nolint
-  mutate(abstract = str_remove_all(abstract, "[^a-zA-Z ]"))
-
-print(paste0("The title data includes ", nrow(title_data_clean),
-             " articles from ", min(title_data_clean$year),
-             " to ", max(title_data_clean$year)))
-print(paste0("The abstract data includes ", nrow(abstract_data_clean),
-             " articles from ", min(abstract_data_clean$year),
-             " to ", max(abstract_data_clean$year)))
+print(paste0("The ", article_characteristic, " data includes ",
+             nrow(data_clean), " articles from ", min(data_clean$year),
+             " to ", max(data_clean$year)))
 
 
 print("Converting the data to a tidy format")
@@ -80,20 +81,12 @@ print("Converting the data to a tidy format")
 # giving each row a single word (unnesting tokens)
 # removing stopwords
 # stemming words
-tidy_data <- function(clean_data, column) {
-  tidied_data <- clean_data %>%
-    unnest_tokens(input = {{column}}, output = "word") %>%
-    anti_join(get_stopwords(), by = "word") %>%  # nolint
-    filter(! word %in% c("covid", "long"))  # nolint
-
-  return(tidied_data)
-}
-
-title_data_tidy <- tidy_data(title_data_clean, "article_title")
-abstract_data_tidy <- tidy_data(abstract_data_clean, "abstract")
+tidied_data <- data_clean %>%
+  unnest_tokens(input = {{col}}, output = "word") %>%
+  anti_join(get_stopwords(), by = "word") %>%  # nolint
+  filter(! word %in% c("covid", "long"))  # nolint
 
 
 print(paste0("Saving the cleaned and tidied data to ", data_dir))
 # save the cleaned data
-write_tsv(title_data_tidy, paste0(data_dir, "title_data.tsv"))
-write_tsv(abstract_data_tidy, paste0(data_dir, "abstract_data.tsv"))
+write_tsv(tidied_data, paste0(data_dir, article_characteristic, "_data.tsv"))
