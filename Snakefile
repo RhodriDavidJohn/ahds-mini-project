@@ -23,7 +23,10 @@ rule download:
         "data/raw/pmids.tsv"
     output: 
         expand("data/raw/article-data-{pmid}.xml", pmid = pmids)
+    log:
+        "logs/snakemake/download"
     shell: """
+    mkdir -p logs/snakemake/download
     echo Starting data download
     date
     bash code/download_data.sh
@@ -37,7 +40,10 @@ rule process:
         "data/clean/extracted_data.tsv",
         "data/clean/title_data.tsv",
         "data/clean/abstract_data.tsv"
+    log:
+        "logs/snakemake/process"
     shell: """
+    mkdir -p logs/snakemake/process
     mkdir -p data/clean
     bash code/extract_data.sh
     Rscript code/clean_data.R
@@ -53,13 +59,18 @@ for article_char in config["article_characteristics"]:
             expand("results/article_{article_char}_{suffix}.png",
                    article_char=article_char,
                    suffix=["topic_trends", "topics_over_time"])
+        log:
+            f"logs/snakemake/plot_{article_char}_data"
         shell: """
+        mkdir -p ogs/snakemake/plot_{params.article_characteristic}_data
         mkdir results
         Rscript code/visualise_data.R {params.article_characteristic}
         """
 
 rule clean:
     "Clean up"
+    log:
+        "logs/snakemake/clean"
     shell: """
     if [ `ls data/raw/* | wc -w` -gt 1 ];
     then
