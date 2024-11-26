@@ -2,4 +2,4 @@ data/raw/*.xml
 data/clean/*
 results/*
 .snakemake
-*.DS_Store
+.DS_Store
