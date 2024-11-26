@@ -32,22 +32,35 @@ rule download:
     bash code/download_data.sh
     """
 
-rule process:
-    "Process the raw data"
+rule extract:
+    "Extract from the raw data"
     input: 
         expand("data/raw/article-data-{pmid}.xml", pmid = pmids)
     output:
-        "data/clean/extracted_data.tsv",
-        "data/clean/title_data.tsv",
-        "data/clean/abstract_data.tsv"
+        "data/clean/extracted_data.tsv"
     log:
-        "logs/snakemake/process"
+        "logs/snakemake/extract_data.log"
     shell: """
-    mkdir -p logs/snakemake/process
+    mkdir -p logs/snakemake
     mkdir -p data/clean
     bash code/extract_data.sh
-    Rscript code/clean_data.R
     """
+
+for article_char in config["article_characteristics"]:
+    rule:
+        name: f"pre_process_{article_char}_data"
+        params: article_characteristic = f"{article_char}"
+        input:
+            "data/clean/extracted_data.tsv"
+        output: 
+            expand("data/clean/{article_char}_data.tsv",
+                   article_char=article_char)
+        log:
+            f"logs/snakemake/pre_processing_{article_char}.log"
+        shell: """
+        mkdir -p logs/snakemake
+        Rscript code/pre_processing.R {params.article_characteristic}
+        """
 
 for article_char in config["article_characteristics"]:
     rule:
