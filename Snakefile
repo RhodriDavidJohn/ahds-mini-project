@@ -1,7 +1,7 @@
 # -*- mode: snakemake -*-
 import pandas as pd
 
-configfile: "config.yml"
+configfile: "config/config.yml"
 
 # get a list of all the PubMed article IDs
 # to be used in the pipeline
