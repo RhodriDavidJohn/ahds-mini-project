@@ -3,3 +3,4 @@ data/clean/*
 results/*
 .snakemake
 .DS_Store
+.Rhistory
