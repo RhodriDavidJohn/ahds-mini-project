@@ -56,12 +56,14 @@ for article_char in config["article_characteristics"]:
         input:
             "data/clean/extracted_data.tsv"
         output: 
-            f"data/clean/{article_char}_data.tsv"
+            f"data/clean/{article_char}_data.tsv",
+            f"data/analysis/article_{article_char}_common_terms.png"
         log:
             f"logs/snakemake/pre_processing_{article_char}.log"
         shell: """
         echo "Begin pre-processing {params.article_characteristic} data" 2>&1 | tee {log}
         date 2>&1 | tee -a {log}
+        mkdir -p data/analysis 2>&1 | tee -a {log}
         Rscript code/pre_processing.R {params.article_characteristic} 2>&1 | tee -a {log}
         echo "Finished pre-processing {params.article_characteristic} data" 2>&1 | tee -a {log}
         date 2>&1 | tee -a {log}
