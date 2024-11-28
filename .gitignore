@@ -1,5 +1,6 @@
 data/raw/*.xml
 data/clean/*
+data/analysis/*
 results/*
 .snakemake
 .DS_Store
