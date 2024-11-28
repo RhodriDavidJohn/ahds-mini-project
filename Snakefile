@@ -24,7 +24,7 @@ rule download:
     output: 
         expand("data/raw/article-data-{pmid}.xml", pmid = pmids)
     log:
-        "logs/snakemake/download"
+        "logs/snakemake/download_data.log"
     shell: """
     mkdir -p logs/snakemake/download
     echo Starting data download
@@ -53,8 +53,7 @@ for article_char in config["article_characteristics"]:
         input:
             "data/clean/extracted_data.tsv"
         output: 
-            expand("data/clean/{article_char}_data.tsv",
-                   article_char=article_char)
+            f"data/clean/{article_char}_data.tsv"
         log:
             f"logs/snakemake/pre_processing_{article_char}.log"
         shell: """
@@ -69,11 +68,10 @@ for article_char in config["article_characteristics"]:
         input:
             f"data/clean/{article_char}_data.tsv"
         output: 
-            expand("results/article_{article_char}_{suffix}.png",
-                   article_char=article_char,
-                   suffix=["topic_trends", "topics_over_time"])
+            f"results/article_{article_char}_topic_trends.png",
+            f"results/article_{article_char}_topics_over_time.png"
         log:
-            f"logs/snakemake/plot_{article_char}_data"
+            f"logs/snakemake/visualise_data_{article_char}.log"
         shell: """
         mkdir -p ogs/snakemake/plot_{params.article_characteristic}_data
         mkdir results
@@ -83,7 +81,7 @@ for article_char in config["article_characteristics"]:
 rule clean:
     "Clean up"
     log:
-        "logs/snakemake/clean"
+        "logs/snakemake/clean.log"
     shell: """
     if [ `ls data/raw/* | wc -w` -gt 1 ];
     then
@@ -93,12 +91,14 @@ rule clean:
     else
       echo "Directory 'data/raw' is empty of article data, continue with downloads"
     fi
-    if [ -d code/clean ]; then
-      rm -r code/clean
+    if [ -d data/clean ]; then
+      echo "Removing directory data/clean"
+      rm -r data/clean
     else
       echo directory code/clean does not exist
     fi
     if [ -d results ]; then
+      echo "Removing directory results"
       rm -r results
     else
       echo directory results does not exist
