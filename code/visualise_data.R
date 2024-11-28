@@ -12,6 +12,7 @@ library(dplyr)
 args <- commandArgs(trailingOnly = TRUE)
 
 article_characteristic <- args[1]
+n_topics <- as.numeric(args[2])
 
 data_dir <- "data/clean/"
 output_dir <- "results/"
@@ -40,9 +41,9 @@ dtm <- articles_data %>%
   count(pmid, word) %>%
   cast_dtm(pmid, word, n)  # DTM: term frequency matrix
 
-print("Training LDA model with 3 topics")
-# Fit LDA model (let's assume 3 topics, adjust as necessary)
-lda_model <- LDA(dtm, k = 3, control = list(seed = 42))
+print(paste0("Training LDA model with ", n_topics, " topics"))
+# Fit LDA model with n topics
+lda_model <- LDA(dtm, k = n_topics, control = list(seed = 42))
 
 
 print("Creating plot to interpret topics")
@@ -65,7 +66,8 @@ topic_terms_plot <- top_terms %>%
 
 # save the plot
 filename <- paste0(
-  output_dir, "article_", article_characteristic, "_topic_terms.png"
+  output_dir, "article_", article_characteristic,
+  "_", n_topics, "_topic_terms.png"
 )
 suppressMessages(
   ggsave(filename,
@@ -132,7 +134,8 @@ tot_plot <- plot_data %>%
 
 # save the plot
 filename <- paste0(
-  output_dir, "article_", article_characteristic, "_topics_over_time.png"
+  output_dir, "article_", article_characteristic,
+  "_", n_topics, "_topics_over_time.png"
 )
 suppressMessages(
   ggsave(filename,

@@ -124,7 +124,7 @@ filename <- paste0(
 )
 suppressMessages(
   ggsave(filename,
-         plot = tot_plot, bg = "white")
+         plot = common_words_plot, bg = "white")
 )
 
 
