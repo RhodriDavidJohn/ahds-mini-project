@@ -1,3 +1,5 @@
 article_characteristics: 
     - title
     - abstract
+
+number_of_topics: 3

@@ -13,8 +13,9 @@ pmids = pmid_df.loc[:,'PMID'].values.tolist()
 rule all:
     "The default rule"
     input:
-        expand("results/article_{article_char}_{suffix}.png",
+        expand("results/article_{article_char}_{n_topics}_{suffix}.png",
                article_char=config["article_characteristics"],
+               n_topics=config["number_of_topics"],
                suffix=["topic_terms", "topics_over_time"])
 
 rule download:
@@ -72,12 +73,15 @@ for article_char in config["article_characteristics"]:
 for article_char in config["article_characteristics"]:
     rule:
         name: f"plot_{article_char}_data"
-        params: article_characteristic = f"{article_char}"
+        params: 
+            article_characteristic = f"{article_char}",
+            n_topics = config["number_of_topics"]
         input:
             f"data/clean/{article_char}_data.tsv"
         output: 
-            expand("results/article_{article_char}_{suffix}.png",
+            expand("results/article_{article_char}_{n_topics}_{suffix}.png",
                    article_char = article_char,
+                   n_topics = config["number_of_topics"],
                    suffix = ["topic_terms", "topics_over_time"])
         log:
             f"logs/snakemake/plot_{article_char}.log"
@@ -85,7 +89,7 @@ for article_char in config["article_characteristics"]:
         echo "Begin plotting {params.article_characteristic} data" 2>&1 | tee {log}
         date 2>&1 | tee -a {log}
         mkdir -p results 2>&1 | tee -a {log}
-        Rscript code/visualise_data.R {params.article_characteristic} 2>&1 | tee -a {log}
+        Rscript code/visualise_data.R {params.article_characteristic} {params.n_topics} 2>&1 | tee -a {log}
         echo "Finished plotting {params.article_characteristic} data" 2>&1 | tee -a {log}
         date 2>&1 | tee -a {log}
         """
