@@ -17,7 +17,7 @@ echo "Articles IDs are divided into $n_batches batches of size $max_batch_size t
 sleep 1
 
 # calculate an estimate for download time
-load_time=$((n_batches/2))  # assuming it takes half a second to download each batch
+load_time=$((2*n_batches/3))  # assuming it takes two thirds of a second to download each batch
 est_time_s=$((n_batches+load_time)) # adding the number of articles because of sleep. this is the estimate in seconds
 est_time_m=$((est_time_s/60))   # dividing by 60 to get estimate in minutes
 
