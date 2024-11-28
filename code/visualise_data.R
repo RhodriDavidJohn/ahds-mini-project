@@ -40,8 +40,8 @@ dtm <- articles_data %>%
   count(pmid, word) %>%
   cast_dtm(pmid, word, n)  # DTM: term frequency matrix
 
-print("Training LDA model with 5 topics")
-# Fit LDA model (let's assume 5 topics, adjust as necessary)
+print("Training LDA model with 3 topics")
+# Fit LDA model (let's assume 3 topics, adjust as necessary)
 lda_model <- LDA(dtm, k = 3, control = list(seed = 42))
 
 
