@@ -15,7 +15,7 @@ rule all:
     input:
         expand("results/article_{article_char}_{suffix}.png",
                article_char=config["article_characteristics"],
-               suffix=["topic_trends", "topics_over_time"])
+               suffix=["topic_terms", "topics_over_time"])
 
 rule download:
     "Download raw data"
@@ -26,10 +26,10 @@ rule download:
     log:
         "logs/snakemake/download_data.log"
     shell: """
-    mkdir -p logs/snakemake/download
-    echo Starting data download
-    date
-    bash code/download_data.sh
+    mkdir -p logs/snakemake 2>&1 | tee {log}
+    echo Starting data download 2>&1 | tee -a {log}
+    date 2>&1 | tee -a {log}
+    bash code/download_data.sh 2>&1 | tee -a {log}
     """
 
 rule extract:
@@ -41,9 +41,12 @@ rule extract:
     log:
         "logs/snakemake/extract_data.log"
     shell: """
-    mkdir -p logs/snakemake
-    mkdir -p data/clean
-    bash code/extract_data.sh
+    echo "Begin extracting data from XML files" 2>&1 | tee {log}
+    date 2>&1 | tee -a {log}
+    mkdir -p data/clean 2>&1 | tee -a {log}
+    bash code/extract_data.sh 2>&1 | tee -a {log}
+    echo "Extraction complete" 2>&1 | tee -a {log}
+    date 2>&1 | tee -a {log}
     """
 
 for article_char in config["article_characteristics"]:
@@ -57,8 +60,11 @@ for article_char in config["article_characteristics"]:
         log:
             f"logs/snakemake/pre_processing_{article_char}.log"
         shell: """
-        mkdir -p logs/snakemake
-        Rscript code/pre_processing.R {params.article_characteristic}
+        echo "Begin pre-processing {params.article_characteristic} data" 2>&1 | tee {log}
+        date 2>&1 | tee -a {log}
+        Rscript code/pre_processing.R {params.article_characteristic} 2>&1 | tee -a {log}
+        echo "Finished pre-processing {params.article_characteristic} data" 2>&1 | tee -a {log}
+        date 2>&1 | tee -a {log}
         """
 
 for article_char in config["article_characteristics"]:
@@ -68,20 +74,22 @@ for article_char in config["article_characteristics"]:
         input:
             f"data/clean/{article_char}_data.tsv"
         output: 
-            f"results/article_{article_char}_topic_trends.png",
-            f"results/article_{article_char}_topics_over_time.png"
+            expand("results/article_{article_char}_{suffix}.png",
+                   article_char = article_char,
+                   suffix = ["topic_terms", "topics_over_time"])
         log:
-            f"logs/snakemake/visualise_data_{article_char}.log"
+            f"logs/snakemake/plot_{article_char}.log"
         shell: """
-        mkdir -p ogs/snakemake/plot_{params.article_characteristic}_data
-        mkdir results
-        Rscript code/visualise_data.R {params.article_characteristic}
+        echo "Begin plotting {params.article_characteristic} data" 2>&1 | tee {log}
+        date 2>&1 | tee -a {log}
+        mkdir -p results 2>&1 | tee -a {log}
+        Rscript code/visualise_data.R {params.article_characteristic} 2>&1 | tee -a {log}
+        echo "Finished plotting {params.article_characteristic} data" 2>&1 | tee -a {log}
+        date 2>&1 | tee -a {log}
         """
 
 rule clean:
     "Clean up"
-    log:
-        "logs/snakemake/clean.log"
     shell: """
     if [ `ls data/raw/* | wc -w` -gt 1 ];
     then

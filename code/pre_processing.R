@@ -35,11 +35,9 @@ data_dir <- "data/clean/"
 # by including quote and row.names arguments
 data <- read.delim(file = paste0(data_dir, "extracted_data.tsv"),
                    sep = "\t", na = c("[Not Available].", ""),
-                   quote = "", row.names = NULL)
+                   quote = "")
 
-wrong_columns <- colnames(data)
-colnames(data) <- wrong_columns[seq(2, length(wrong_columns), 1)]
-data <- data %>% select(-length(wrong_columns))
+
 
 # convert data to tibble and
 # make the column names snake case
