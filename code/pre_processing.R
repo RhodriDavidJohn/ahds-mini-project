@@ -31,9 +31,15 @@ print("Loading the extracted data")
 # load the data
 data_dir <- "data/clean/"
 
+# ensure the data can be read properly
+# by including quote and row.names arguments
 data <- read.delim(file = paste0(data_dir, "extracted_data.tsv"),
                    sep = "\t", na = c("[Not Available].", ""),
-                   comment.char = '"')
+                   quote = "", row.names = NULL)
+
+wrong_columns <- colnames(data)
+colnames(data) <- wrong_columns[seq(2, length(wrong_columns), 1)]
+data <- data %>% select(-length(wrong_columns))
 
 # convert data to tibble and
 # make the column names snake case
@@ -66,6 +72,8 @@ print("Cleaning the data")
 # clean the dataset by
 # dropping any rows with missing text data
 # removing XML tags and non-alphabetical characters from text
+# XML tags should have been removed during extraction but this
+# is just to make sure
 data_clean <- data %>%
   drop_na(col) %>%
   mutate(!!sym(col) := str_remove_all(!!sym(col), "<[^>]+>")) %>% # nolint
