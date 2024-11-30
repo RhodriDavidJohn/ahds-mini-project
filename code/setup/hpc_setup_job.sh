@@ -9,5 +9,12 @@
 #SBATCH --mem=1K
 
 echo "Setting up HCP environment and pipeline slurm config"
-bash code/setup/hpc_setup.sh
+
+cd code/setup
+
+# save the slurm config document to home directory
+mkdir -p ~/.config/snakemake/ahds_slurm_profile
+
+cp slurm_config.yaml ~/.config/snakemake/ahds_slurm_profile/config.yaml
+
 echo "Finished setup!"
