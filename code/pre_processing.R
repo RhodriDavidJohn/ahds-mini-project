@@ -11,12 +11,14 @@
 library(janitor)
 library(tidyverse)
 library(tidytext)
+library(parallel)
 library(dplyr)
 
 
 args <- commandArgs(trailingOnly = TRUE)
 
 article_characteristic <- args[1]
+batches <- args[2]
 
 if (article_characteristic == "title") {
   col <- "article_title"
@@ -34,10 +36,19 @@ output_dir <- "data/analysis/"
 
 # ensure the data can be read properly
 # by including quote and row.names arguments
-data <- read.delim(file = paste0(data_dir, "extracted_data.tsv"),
-                   sep = "\t", na = c("[Not Available].", ""),
-                   quote = "")
-
+load_data <- function(batch) {
+  batch_data <- read.delim(file = paste0(data_dir, batch,
+                                         "_extracted_data.tsv"),
+                           sep = "\t", na = c("[Not Available].", ""),
+                           quote = "")
+  return(batch_data)
+}
+data <- mclapply(batches, load_data, mc.cores = length(batches))
+data <- rbind(data)
+#data <- read.delim(file = paste0(data_dir, "extracted_data.tsv"),
+#                   sep = "\t", na = c("[Not Available].", ""),
+#                   quote = "")
+#
 
 
 # convert data to tibble and

@@ -5,9 +5,17 @@ configfile: "config/config.yml"
 
 # get a list of all the PubMed article IDs
 # to be used in the pipeline
-pmid_df = pd.read_csv("data/raw/pmids.tsv",
-                      sep = "\t")
-pmids = pmid_df.loc[:,'PMID'].values.tolist()
+try:
+    pmid_df = pd.read_csv("data/raw/pmids.tsv",
+                          sep = "\t")
+    pmids = pmid_df.loc[:,'PMID'].values.tolist()
+    pmid_batches = sorted(set([str(pmid)[:2] for pmid in pmids]))
+    pmids_dict = {
+        batch: [pmid for pmid in pmids if str(pmid).startswith(batch)] for batch in pmid_batches
+    }
+except Exception as e:
+    print(f"{e}: Check data/raw/pmids.tsv")
+    raise(e)
 
 
 rule all:
@@ -17,6 +25,18 @@ rule all:
                article_char=config["article_characteristics"],
                n_topics=config["number_of_topics"],
                suffix=["topic_terms", "topics_over_time"])
+
+rule reset_articles:
+    "Reload the available PMIDs to analyse more/new articles"
+#    output:
+#        "data/raw/pmids.tsv"
+    log:
+        "logs/snakemake/reset_articles.log"
+    shell: """
+    echo Loading set of article PMIDs 2>&1 | tee {log}
+    bash code/get_pmids.sh 2>&1 | tee -a {log}
+    echo Downloaded set of article PMIDs 2>&1 | tee -a {log}
+    """
 
 rule download:
     "Download raw data"
@@ -33,29 +53,35 @@ rule download:
     bash code/download_data.sh 2>&1 | tee -a {log}
     """
 
-rule extract:
-    "Extract from the raw data"
-    input: 
-        expand("data/raw/article-data-{pmid}.xml", pmid = pmids)
-    output:
-        "data/clean/extracted_data.tsv"
-    log:
-        "logs/snakemake/extract_data.log"
-    shell: """
-    echo "Begin extracting data from XML files" 2>&1 | tee {log}
-    date 2>&1 | tee -a {log}
-    mkdir -p data/clean 2>&1 | tee -a {log}
-    bash code/extract_data.sh 2>&1 | tee -a {log}
-    echo "Extraction complete" 2>&1 | tee -a {log}
-    date 2>&1 | tee -a {log}
-    """
+for batch, ids in pmids_dict.items():
+    rule:
+        name:
+            f"extract_batch_{batch}"
+        params:
+            batch = f"{batch}"
+        input:
+            expand("data/raw/article-data-{pmid}.xml", pmid = ids)
+        output:
+            f"data/clean/{batch}_extracted_data.tsv"
+        log:
+            f"logs/snakemake/{batch}_extract_data.log"
+        shell: """
+        echo "Begin extracting data from XML files beginning with {params.batch}" 2>&1 | tee {log}
+        date 2>&1 | tee -a {log}
+        mkdir -p data/clean 2>&1 | tee -a {log}
+        bash code/extract_data.sh {params.batch} 2>&1 | tee -a {log}
+        echo "Extraction of batch {params.batch} complete" 2>&1 | tee -a {log}
+        date 2>&1 | tee -a {log}
+        """
 
 for article_char in config["article_characteristics"]:
     rule:
         name: f"pre_process_{article_char}_data"
-        params: article_characteristic = f"{article_char}"
+        params: 
+            article_characteristic = f"{article_char}",
+            batches = list(pmid_batches)
         input:
-            "data/clean/extracted_data.tsv"
+            expand("data/clean/{batch}_extracted_data.tsv", batch = pmid_batches)
         output: 
             f"data/clean/{article_char}_data.tsv",
             f"data/analysis/article_{article_char}_common_terms.png"
@@ -65,7 +91,7 @@ for article_char in config["article_characteristics"]:
         echo "Begin pre-processing {params.article_characteristic} data" 2>&1 | tee {log}
         date 2>&1 | tee -a {log}
         mkdir -p data/analysis 2>&1 | tee -a {log}
-        Rscript code/pre_processing.R {params.article_characteristic} 2>&1 | tee -a {log}
+        Rscript code/pre_processing.R {params.article_characteristic} {params.batches} 2>&1 | tee -a {log}
         echo "Finished pre-processing {params.article_characteristic} data" 2>&1 | tee -a {log}
         date 2>&1 | tee -a {log}
         """
