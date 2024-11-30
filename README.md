@@ -33,11 +33,73 @@ High performance computing:
         - Slurm
 
 ### Instructions
-#### Conda environment set-up
+#### One time set-up
+Before running the pipeline on the HPC for the first time you must follow some set-up steps.
+First, clone this git repository to a suitable area of the login node in the HPC by running the following command:
+```
+git clone https://github.com/RhodriDavidJohn/ahds-mini-project.git
+```
+Before starting the set-up, ensure you have cloned the git repository and you are in the root directory of the repository.
 
+##### Set up Slurm profile to run pipeline
+You will only need to set up the Slurm profile once.
+To do this run the following command to submit a Slurm job to set up your Slurm profile:
+```
+sbatch code/setup/hpc_setup_job.sh
+```
+You can check the progress of the job by running the command:
+```
+sacct -j {job-id} -X
+```
+Note, you will need to replace {job-id} with the job ID given by the first command.
+
+##### Set up Conda environment
+First you will need to ensure that you have correctly set up Conda on the HCP.
+Then you can create and activate the environment for the pipeline by running the following commands, again ensuring you are in the root directory of the repository:
+```
+source ~/initConda.sh
+CONDA_SUBDIR=linux-64 conda env create -n ahds-summative-env --file environment.yml
+conda activate ahds-summative-env
+```
+Note, you will only need to create the environment once.
+After you have created the environment, if you ever want to activate it, simply run the following commands:
+```
+source ~/initConda.sh
+conda activate ahds-summative-env
+```
 
 #### Running the pipeline
+If you have successfully completed the HCP set-up steps above and the Conda environment is active, then you can run the pipeline.
 
+##### tmux
+It is useful to run the pipeline within a tmux session so that you can continue to use the HCP while the pipeline is running. This is particularly useful as the pipeline takes about an hour and a quarter to complete.
+
+To create a new tmux session run the following command in the HCP login node: `tmux`
+To return to the login node, type:
+```
+Ctrl+b,d  # Windows
+Cmd+b,d   # Mac
+```
+To return to the tmux session run the following command: `tmux a`
+
+To kill the tmux session run the following command: `exit`
+
+
+##### Pipeline commands
+To produce the most up to date set of article PMIDs, run the following command:
+```
+snakemake --executor slurm --profile ahds_slurm_profile reset_articles
+```
+
+To run the full pipeline, run the following command:
+```
+snakemake --executor slurm --profile ahds_slurm_profile
+```
+
+If you want to clean the repository (i.e., remove all article data [not the PMIDs], remove the cleaned data and remove the results), run the following command:
+```
+snakemake --executor slurm --profile ahds_slurm_profile clean
+```
 
 
 ## Data

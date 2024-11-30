@@ -1,7 +1,7 @@
 # Information about the code
 
 ## Folder contents
-This folder contains 5 files and one sub-folder which contains a single file.
+This folder contains 5 files and two sub-folders.
 
 The files in this folder are:
     - get_pmids.sh
@@ -10,12 +10,23 @@ The files in this folder are:
     - clean_data.R
     - visualise_data.R
 
+The sub-folder setup contains the following files:
+    - hpc_setup_job.sh
+    - slurm_config.yaml
 The sub-folder utils contains the following file:
 	  - progress_bar.sh
 
 
 ## File contents
-### utils/progress_bar.sh
+### setup
+#### hpc_setup_job.sh
+This file is a shell script to be submitted as a job to Slurm. This script is part of the HPC set-up process and it's purpose is to create a Slurm profile.
+
+#### slurm_config.yaml
+This file is a yaml file which provides the config for the Slurm profile.
+
+### utils
+#### progress_bar.sh
 This file is a shell script which defines a function to produce a progress bar for downloading the article data. The progress bar appears in the terminal like 'Progress: [###-------] 30.00%'.
 
 ### get_pmids.sh
@@ -29,7 +40,7 @@ The articles are then saved as XML files in ../data/raw/article-data-{pmid}.xml
 
 ### extract_data.sh
 This is a shell script to extract the data of interest from the PubMed article XML files in ../data/raw/article-data-{pmid}.xml
-The shell script uses xmlstarlet to extract the values from the following XML tags:
+The shell script uses xmllint to extract the values from the following XML tags:
   - PMID = \<PMID\>
   - Year = \<PubDate\>\<Year\>
   - Article Title = \<ArticleTitle\>
