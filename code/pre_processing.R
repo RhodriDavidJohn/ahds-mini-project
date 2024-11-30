@@ -18,14 +18,15 @@ library(dplyr)
 args <- commandArgs(trailingOnly = TRUE)
 
 article_characteristic <- args[1]
-batches <- args[2]
+batches_string <- args[2]
+
+batches <- strsplit(batches_string, ",")[[1]]
 
 if (article_characteristic == "title") {
   col <- "article_title"
 } else if (article_characteristic == "abstract") {
   col <- "abstract"
 }
-
 
 print(paste0("Pre-processing ", article_characteristic, " data"))
 
@@ -35,20 +36,20 @@ data_dir <- "data/clean/"
 output_dir <- "data/analysis/"
 
 # ensure the data can be read properly
-# by including quote and row.names arguments
+# by including quote argument
 load_data <- function(batch) {
-  batch_data <- read.delim(file = paste0(data_dir, batch,
-                                         "_extracted_data.tsv"),
-                           sep = "\t", na = c("[Not Available].", ""),
-                           quote = "")
+  batch_data <- read.delim(
+    file = paste0(data_dir, batch, "_extracted_data.tsv"),
+    sep = "\t",
+    na = c("[Not Available].", ""),
+    quote = ""
+  )
   return(batch_data)
 }
+# load all the extracted data
 data <- mclapply(batches, load_data, mc.cores = length(batches))
-data <- rbind(data)
-#data <- read.delim(file = paste0(data_dir, "extracted_data.tsv"),
-#                   sep = "\t", na = c("[Not Available].", ""),
-#                   quote = "")
-#
+# join them into one dataframe
+data <- do.call(rbind, data)
 
 
 # convert data to tibble and

@@ -79,7 +79,7 @@ for article_char in config["article_characteristics"]:
         name: f"pre_process_{article_char}_data"
         params: 
             article_characteristic = f"{article_char}",
-            batches = list(pmid_batches)
+            batches = ",".join(list(pmid_batches))
         input:
             expand("data/clean/{batch}_extracted_data.tsv", batch = pmid_batches)
         output: 
