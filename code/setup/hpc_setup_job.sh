@@ -7,8 +7,12 @@
 #SBATCH --ntasks-per-node=1
 #SBATCH --time=00:10
 #SBATCH --mem=1K
+#SBATCH --output=logs/slurm/setup.out
 
 echo "Setting up HCP environment and pipeline slurm config"
+
+# create the log directory
+mkdir -p logs/slurm
 
 cd code/setup
 
