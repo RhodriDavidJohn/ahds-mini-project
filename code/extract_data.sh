@@ -28,7 +28,8 @@ process_file() {
     year=$(xmllint --xpath "string(//PubmedArticleSet/PubmedArticle/MedlineCitation/Article/Journal/JournalIssue/PubDate/Year)" "$file" 2>/dev/null || echo "N/A")
 
     # Extract ArticleTitle
-    title=$(xmllint --xpath "string(//PubmedArticleSet/PubmedArticle/MedlineCitation/Article/ArticleTitle)" "$file" 2>/dev/null || echo "N/A")
+    title=$(xmllint --xpath "string(//PubmedArticleSet/PubmedArticle/MedlineCitation/Article/ArticleTitle)" "$file" 2>/dev/null | \
+            sed -E 's/<[^>]+>//g' || echo "N/A")
 
     # Extract AbstractText including text within tags
     abstract=$(xmllint --xpath "//PubmedArticleSet/PubmedArticle/MedlineCitation/Article/Abstract/AbstractText" "$file" 2>/dev/null | \
