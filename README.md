@@ -16,21 +16,21 @@ Finally, the data are analysed using Latent Dirichlet Allocation (LDA) topic mod
 
 ### Tech Stack
 Environment management:
-        - conda
+        * conda
 Programming languages:
-        - Shell
-        - R (version 4.4.2)
-                - tidyverse
-                - janitor
-                - tidytext
-                - topicmodels
-                - ggplot2
-        - Python (version 3.12.7)
-                - snakemake
-                - pandas
+        * Shell
+        * R (version 4.4.2)
+                * tidyverse
+                * janitor
+                * tidytext
+                * topicmodels
+                * ggplot2
+        * Python (version 3.12.7)
+                * snakemake
+                * pandas
 High performance computing:
-        - BlueCrystal
-        - Slurm
+        * BlueCrystal
+        * Slurm
 
 ### Instructions
 #### One time set-up

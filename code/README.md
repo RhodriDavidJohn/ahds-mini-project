@@ -4,17 +4,17 @@
 This folder contains 5 files and two sub-folders.
 
 The files in this folder are:
-    - get_pmids.sh
-	  - download_data.sh
-	  - extract_data.sh
-    - clean_data.R
-    - visualise_data.R
+    * get_pmids.sh
+	  * download_data.sh
+	  * extract_data.sh
+    * clean_data.R
+    * visualise_data.R
 
 The sub-folder setup contains the following files:
-    - hpc_setup_job.sh
-    - slurm_config.yaml
+    * hpc_setup_job.sh
+    * slurm_config.yaml
 The sub-folder utils contains the following file:
-	  - progress_bar.sh
+	  * progress_bar.sh
 
 
 ## File contents
@@ -41,10 +41,10 @@ The articles are then saved as XML files in ../data/raw/article-data-{pmid}.xml
 ### extract_data.sh
 This is a shell script to extract the data of interest from the PubMed article XML files in ../data/raw/article-data-{pmid}.xml
 The shell script uses xmllint to extract the values from the following XML tags:
-  - PMID = \<PMID\>
-  - Year = \<PubDate\>\<Year\>
-  - Article Title = \<ArticleTitle\>
-  - Abstract = \<AbstractText\>
+  * PMID = \<PMID\>
+  * Year = \<PubDate\>\<Year\>
+  * Article Title = \<ArticleTitle\>
+  * Abstract = \<AbstractText\>
 PMID is the PubMed ID, Year is the year the article is published, Article Title is the article's title, and Abstract is the article's abstract.
 The shell script extracts the data from every article in parallel and saves it as a TSV file in ../data/clean/extracted_data.tsv
 
