@@ -51,7 +51,7 @@ data <- mclapply(batches, load_data, mc.cores = length(batches))
 # join them into one dataframe
 data <- do.call(rbind, data)
 
-
+print(paste0("Total number of articles: ", nrow(data)))
 # convert data to tibble and
 # make the column names snake case
 # and make the years and pmids numeric instead of string
@@ -77,7 +77,7 @@ data <- data %>%
 
 # split the data into the article characteristic
 data <- data %>% select("pmid", "year", {{col}})
-
+print(paste0("Total number of articles after dropping 2020 and 2025: ", nrow(data)))
 
 print("Cleaning the data")
 # clean the dataset by
@@ -148,13 +148,13 @@ print("Converting the data to a tidy format")
 # based off the data
 subject_stopwords <- common_words %>%
   distinct(word)
-
+print(paste0("Total number of subject stopwords: ", nrow(subject_stopwords)))
 tidied_data <- data_clean %>%
   unnest_tokens(input = {{col}}, output = "word") %>%
   anti_join(get_stopwords(), by = "word") %>%  # nolint
   anti_join(subject_stopwords, by = "word")  # nolint
 
-
+print(paste0("Total number of rows post tidying: ", nrow(tidied_data)))
 print(paste0("Saving the cleaned and tidied data to ", data_dir))
 # save the cleaned data
 write_tsv(tidied_data, paste0(data_dir, article_characteristic, "_data.tsv"))
