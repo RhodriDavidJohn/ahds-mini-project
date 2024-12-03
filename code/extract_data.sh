@@ -47,6 +47,6 @@ done
 # Wait until all files have been processed
 wait
 n_articles=`wc -l $OUTPUT_TSV`
-echo "Number of articles in batch ${batch}: $((n_articles-1))"
+echo "Number of articles in batch ${batch}: $n_articles-1"
 echo "Extraction complete."
 echo "Data saved to $OUTPUT_TSV"
