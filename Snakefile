@@ -9,9 +9,10 @@ try:
     pmid_df = pd.read_csv("data/raw/pmids.tsv",
                           sep = "\t")
     pmids = pmid_df.loc[:,'PMID'].values.tolist()
-    pmid_batches = sorted(set([str(pmid)[:2] for pmid in pmids]))
+    n_batches = len(pmid_df)//1000
+    n_pmids = (len(pmid_df)//n_batches) + 1
     pmids_dict = {
-        batch: [pmid for pmid in pmids if str(pmid).startswith(batch)] for batch in pmid_batches
+        str(n): pmids[n*n_pmids:(n+1)*n_pmids] for n in range(n_batches)
     }
 except Exception as e:
     print(f"{e}: Check data/raw/pmids.tsv")
@@ -28,8 +29,6 @@ rule all:
 
 rule reset_articles:
     "Reload the available PMIDs to analyse more/new articles"
-#    output:
-#        "data/raw/pmids.tsv"
     log:
         "logs/snakemake/reset_articles.log"
     shell: """
@@ -58,7 +57,8 @@ for batch, ids in pmids_dict.items():
         name:
             f"extract_batch_{batch}"
         params:
-            batch = f"{batch}"
+            batch = f"{batch}",
+            pmids = " ".join([str(id) for id in ids])
         input:
             expand("data/raw/article-data-{pmid}.xml", pmid = ids)
         output:
@@ -69,7 +69,7 @@ for batch, ids in pmids_dict.items():
         echo "Begin extracting data from XML files beginning with {params.batch}" 2>&1 | tee {log}
         date 2>&1 | tee -a {log}
         mkdir -p data/clean 2>&1 | tee -a {log}
-        bash code/extract_data.sh {params.batch} 2>&1 | tee -a {log}
+        bash code/extract_data.sh {params.batch} "{params.pmids}" 2>&1 | tee -a {log}
         echo "Extraction of batch {params.batch} complete" 2>&1 | tee -a {log}
         date 2>&1 | tee -a {log}
         """
@@ -79,9 +79,9 @@ for article_char in config["article_characteristics"]:
         name: f"pre_process_{article_char}_data"
         params: 
             article_characteristic = f"{article_char}",
-            batches = ",".join(list(pmid_batches))
+            batches = ",".join([str(n) for n in range(n_batches)])
         input:
-            expand("data/clean/{batch}_extracted_data.tsv", batch = pmid_batches)
+            expand("data/clean/{batch}_extracted_data.tsv", batch = [str(n) for n in range(n_batches)])
         output: 
             f"data/clean/{article_char}_data.tsv",
             f"data/analysis/article_{article_char}_common_terms.png"
