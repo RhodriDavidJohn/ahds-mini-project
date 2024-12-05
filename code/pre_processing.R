@@ -24,8 +24,15 @@ batches <- strsplit(batches_string, ",")[[1]]
 
 if (article_characteristic == "title") {
   col <- "article_title"
+  top_n_terms <- 20
 } else if (article_characteristic == "abstract") {
   col <- "abstract"
+  top_n_terms <- 50
+} else {
+  throw(
+    "Article characteristic ", article_characteristic, "does not exist. ",
+    "Article characteristic must be either 'title' or 'abstract'"
+  )
 }
 
 print(paste0("Pre-processing ", article_characteristic, " data"))
@@ -77,7 +84,7 @@ data <- data %>%
 
 # split the data into the article characteristic
 data <- data %>% select("pmid", "year", {{col}})
-
+colnames(data) <- c("pmid", "year", "text")
 
 print("Cleaning the data")
 # clean the dataset by
@@ -86,59 +93,45 @@ print("Cleaning the data")
 # XML tags should have been removed during extraction but this
 # is just to make sure
 data_clean <- data %>%
-  drop_na(col) %>%
-  mutate(!!sym(col) := str_remove_all(!!sym(col), "<[^>]+>")) %>% # nolint
-  mutate(!!sym(col) := str_remove_all(!!sym(col), "[^a-zA-Z ]"))
+  drop_na(text) %>%
+  mutate(text = str_remove_all(text, "<[^>]+>")) %>% # nolint
+  mutate(text = str_remove_all(text, "[^a-zA-Z ]"))
 
 print(paste0("The ", article_characteristic, " data includes ",
              nrow(data_clean), " articles from ", min(data_clean$year),
              " to ", max(data_clean$year)))
 
 
-# establish common words that do not
+# establish common subject specific words that do not
 # add much value to the analysis
-year_words <- data_clean %>%
-  unnest_tokens(input = {{col}}, output = "word") %>%
-  anti_join(get_stopwords(), by = "word") %>% # nolint
-  count(year, word, sort = TRUE)
-
-total_words <- year_words %>%
+tfidf_stopwords <- data_clean %>%
+  unnest_tokens(input = "text", output = "word") %>%
+  anti_join(get_stopwords(), by = "word") %>% # remove generic english stopwords
+  count(year, word, sort = TRUE) %>%
+  bind_tf_idf(word, year, n) %>%
+  filter(tf_idf == 0) %>%
   group_by(year) %>%
-  summarize(total = sum(n))
+  slice_max(n, n = top_n_terms)
 
-year_words <- left_join(year_words, total_words)
+stopword_candidates <- tfidf_stopwords %>%
+  group_by(word) %>%
+  summarize(year_count = n_distinct(year)) %>%
+  arrange(desc(year_count))  # Sort by year_count for review
 
-# calculate tf-idf
-year_tf_idf <- year_words %>%
-  bind_tf_idf(word, year, n)
+num_years <- length(unique(data$year))  # Total number of years in the dataset
 
-common_words <- year_tf_idf %>%
-  filter(idf == 0) %>%
-  group_by(year, word) %>%
-  summarise(n = sum(n)) %>%
-  slice_max(n, n = 20) %>%
-  ungroup()
+# Filter words appearing in >50% of years
+subject_specific_stopwords <- stopword_candidates %>%
+  filter(year_count > num_years * 0.5)
 
-common_words_plot <- common_words %>%
-  ggplot(aes(n, fct_reorder(word, n), fill = year)) +
-  geom_col(show.legend = FALSE) +
-  facet_wrap(~year, ncol = 2, scales = "free") +
-  labs(
-    title = paste0(
-      "Most common words in article ", article_characteristic, " by year"
-    ),
-    x = "Word count", y = NULL
+# save the subject specific stopwords as a tsv file
+write_tsv(
+  subject_specific_stopwords,
+  paste0(
+    data_dir,
+    "article_", article_characteristic, "_subject_specific_stopwords.tsv"
   )
-
-# save the plot
-filename <- paste0(
-  output_dir, "article_", article_characteristic, "_common_terms.png"
 )
-suppressMessages(
-  ggsave(filename,
-         plot = common_words_plot, bg = "white")
-)
-
 
 print("Converting the data to a tidy format")
 # tidy the data by:
@@ -146,13 +139,11 @@ print("Converting the data to a tidy format")
 # removing regular english stopwords
 # and subject specific stopwords
 # based off the data
-subject_stopwords <- common_words %>%
-  distinct(word)
 
 tidied_data <- data_clean %>%
-  unnest_tokens(input = {{col}}, output = "word") %>%
+  unnest_tokens(input = "text", output = "word") %>%
   anti_join(get_stopwords(), by = "word") %>%  # nolint
-  anti_join(subject_stopwords, by = "word")  # nolint
+  anti_join(subject_specific_stopwords, by = "word")  # nolint
 
 
 print(paste0("Saving the cleaned and tidied data to ", data_dir))
