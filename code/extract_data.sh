@@ -4,19 +4,19 @@ batch=$1
 pmids=$2
 
 # Directory containing XML files
-n_pmids=$(echo $pmids | wc -w)
-echo "Number of articles to be processed: n_pmids"
+n_pmids=$(echo "$pmids" | wc -w)
+echo "Number of articles to be processed: $n_pmids"
 
 # Output TSV file
 OUTPUT_TSV="data/clean/${batch}_extracted_data.tsv"
 
 # Create or clear the output file
-echo -e "PMID\tYear\tArticleTitle\tAbstract" > "$OUTPUT_TSV"
+printf "PMID\tYear\tArticleTitle\tAbstract\n" > "$OUTPUT_TSV"
 
 # Function to process a single XML file
 process_file() {
     local pmid="$1"
-    file="data/raw/article-data-${pmid}.xml"
+    local file="data/raw/article-data-${pmid}.xml"
 
     # Check if the file is valid XML
     if ! xmllint --noout "$file" 2>/dev/null; then
@@ -37,26 +37,33 @@ process_file() {
     # Extract ArticleTitle
     title=$(xmllint --xpath \
             "string(//PubmedArticleSet/PubmedArticle/MedlineCitation/Article/ArticleTitle)" \
-            "$file" 2>/dev/null |  sed -E 's/<[^>]+>//g' || echo "N/A")
+            "$file" 2>/dev/null | sed -E 's/<[^>]+>//g' | tr -d '\r\n' || echo "N/A")
 
     # Extract AbstractText including text within tags
     abstract=$(xmllint --xpath \
                "//PubmedArticleSet/PubmedArticle/MedlineCitation/Article/Abstract/AbstractText" \
-               "$file" 2>/dev/null | sed -E 's/<[^>]+>//g' | tr '\n' ' ' || echo "N/A")
+               "$file" 2>/dev/null | sed -E 's/<[^>]+>//g' | tr -d '\r\n' || echo "N/A")
 
-    # Print the result as tab-separated values
-    echo -e "${pmid}\t${year}\t${title}\t${abstract}"
+    # Print the result as tab-separated values, trimming whitespace
+    printf "%s\t%s\t%s\t%s\n" \
+           "$pmid" "$year" "$title" "$abstract"
 }
 
-# Loop through all XML files in the directory
-# and append data to the output file
+# Loop through all PMIDs and process files in parallel
+temp_dir=$(mktemp -d)
 for pmid in ${pmids[@]}; do
-    process_file "$pmid" >> "$OUTPUT_TSV" &
+    process_file "$pmid" > "$temp_dir/${pmid}.tsv" &
 done
 
-# Wait until all files have been processed
+# Wait for all processes to complete
 wait
-n_articles=`wc -l $OUTPUT_TSV`
 
-echo "Extraction complete."
-echo "Data saved to $OUTPUT_TSV"
+# Combine temporary files into the final output
+cat "$temp_dir"/*.tsv >> "$OUTPUT_TSV"
+rm -r "$temp_dir"
+
+# Ensure the file has consistent Unix-style line endings
+dos2unix "$OUTPUT_TSV" 2>/dev/null || true
+
+n_articles=$(wc -l < "$OUTPUT_TSV")
+echo "Extraction complete. $((n_articles-1)) lines saved to $OUTPUT_TSV"
