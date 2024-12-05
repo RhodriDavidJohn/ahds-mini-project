@@ -66,7 +66,7 @@ for batch, ids in pmids_dict.items():
         log:
             f"logs/snakemake/{batch}_extract_data.log"
         shell: """
-        echo "Begin extracting data from XML files beginning with {params.batch}" 2>&1 | tee {log}
+        echo "Begin extracting data from XML files from batch {params.batch}" 2>&1 | tee {log}
         date 2>&1 | tee -a {log}
         mkdir -p data/clean 2>&1 | tee -a {log}
         bash code/extract_data.sh {params.batch} "{params.pmids}" 2>&1 | tee -a {log}
