@@ -84,13 +84,12 @@ for article_char in config["article_characteristics"]:
             expand("data/clean/{batch}_extracted_data.tsv", batch = [str(n) for n in range(n_batches)])
         output: 
             f"data/clean/{article_char}_data.tsv",
-            f"data/analysis/article_{article_char}_common_terms.png"
+            f"data/clean/article_{article_char}_subject_specific_stopwords.tsv"
         log:
             f"logs/snakemake/pre_processing_{article_char}.log"
         shell: """
         echo "Begin pre-processing {params.article_characteristic} data" 2>&1 | tee {log}
         date 2>&1 | tee -a {log}
-        mkdir -p data/analysis 2>&1 | tee -a {log}
         Rscript code/pre_processing.R {params.article_characteristic} {params.batches} 2>&1 | tee -a {log}
         echo "Finished pre-processing {params.article_characteristic} data" 2>&1 | tee -a {log}
         date 2>&1 | tee -a {log}
