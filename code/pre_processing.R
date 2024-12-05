@@ -51,13 +51,14 @@ load_data <- function(batch) {
     na = c("[Not Available].", ""),
     quote = ""
   )
+  print(paste0("Rows in batch ", batch, ": ", nrow(batch_data)))
   return(batch_data)
 }
 # load all the extracted data
 data <- mclapply(batches, load_data, mc.cores = length(batches))
 # join them into one dataframe
 data <- do.call(rbind, data)
-
+print(paste0("Total rows of data loaded: ", nrow(data)))
 
 # convert data to tibble and
 # make the column names snake case
