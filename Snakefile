@@ -32,7 +32,8 @@ rule reset_articles:
     log:
         "logs/snakemake/reset_articles.log"
     shell: """
-    echo Loading set of article PMIDs 2>&1 | tee {log}
+    mkdir -p logs/snakemake 2>&1 | tee {log}
+    echo Loading set of article PMIDs 2>&1 | tee -a {log}
     bash code/get_pmids.sh 2>&1 | tee -a {log}
     echo Downloaded set of article PMIDs 2>&1 | tee -a {log}
     """

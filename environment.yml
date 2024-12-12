@@ -14,4 +14,4 @@ dependencies:
   - snakemake
   - graphviz
   - snakemake-executor-plugin-slurm
-prefix: /Users/rhodridavies/miniconda3/envs/ahds-summative-env
+prefix: /~/miniconda3/envs/ahds-summative-env
